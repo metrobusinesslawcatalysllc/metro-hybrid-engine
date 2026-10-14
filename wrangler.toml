@@ -1,3 +1,7 @@
 name = "metro-hybrid-engine"
 main = "src/index.ts"
 compatibility_date = "2026-10-14"
+
+[[d1_databases]]
+binding = "DB"
+database_id = "81b8958f-0a43-4791-b628-1233f20e2da6"
