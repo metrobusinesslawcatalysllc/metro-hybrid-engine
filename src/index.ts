@@ -86,49 +86,23 @@ export default {
       }
 
       // ==========================================
-      // MARKET DATA ENDPOINTS (WITH RATE-LIMIT FALLBACK)
+      // MARKET DATA ENDPOINTS
       // ==========================================
 
       // GET /api/market/quote?symbol=AAPL
       if (path === "/api/market/quote" && method === "GET") {
-        const symbol = (url.searchParams.get("symbol") || "IBM").toUpperCase();
+        const symbol = url.searchParams.get("symbol") || "IBM";
         const apiKey = env.ALPHA_VANTAGE_API_KEY;
 
         if (!apiKey) {
           return json({ error: "ALPHA_VANTAGE_API_KEY secret is not set in Cloudflare environment variables." }, 500);
         }
 
-        try {
-          const externalUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
-          const response = await fetch(externalUrl);
-          const marketData = await response.json();
+        const externalUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+        const response = await fetch(externalUrl);
+        const marketData = await response.json();
 
-          // If Alpha Vantage hits rate limit or returns empty quote data, serve mock quote for development
-          if (marketData.Information || !marketData["Global Quote"] || Object.keys(marketData["Global Quote"]).length === 0) {
-            return json({
-              symbol: symbol,
-              source: "fallback-mock-due-to-rate-limit",
-              data: {
-                "Global Quote": {
-                  "01. symbol": symbol,
-                  "02. open": "180.00",
-                  "03. high": "182.50",
-                  "04. low": "179.20",
-                  "05. price": "181.25",
-                  "06. volume": "50000000",
-                  "07. latest trading day": "2026-10-15",
-                  "08. previous close": "179.50",
-                  "09. change": "1.75",
-                  "10. change percent": "0.97%"
-                }
-              }
-            });
-          }
-
-          return json({ symbol: symbol, data: marketData });
-        } catch (err) {
-          return json({ error: "Failed to fetch market data", details: err.message }, 500);
-        }
+        return json({ symbol: symbol.toUpperCase(), data: marketData });
       }
 
       return json({ error: "Endpoint Not Found" }, 404);
