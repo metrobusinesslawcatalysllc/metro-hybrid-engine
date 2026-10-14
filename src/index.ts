@@ -18,39 +18,19 @@ export default {
     }
 
     try {
-      // 1. Health Check Endpoint
-      if (url.pathname === "/") {
-        return new Response(
-          JSON.stringify({ status: "online", system: "Metro Hybrid Engine Active" }), 
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // 2. Fetch Users Endpoint (Includes Super Masters, Managers, Sub-Admin Supporters, Clients)
-      if (url.pathname === "/api/users" && request.method === "GET") {
-        const { results } = await env.DB.prepare("SELECT * FROM users").all();
-        return new Response(
-          JSON.stringify(results), 
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // 3. Fetch Support Tickets Endpoint (Assigned to Sub-Admin Supporters)
-      if (url.pathname === "/api/tickets" && request.method === "GET") {
-        const { results } = await env.DB.prepare("SELECT * FROM support_tickets").all();
-        return new Response(
-          JSON.stringify(results), 
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response("Endpoint Not Found", { status: 404, headers: corsHeaders });
+      // Test the D1 database connection by fetching existing tables
+      const { results } = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
       
-    } catch (err: any) {
-      return new Response(
-        JSON.stringify({ error: err.message }), 
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return Response.json({
+        status: "success",
+        message: "Metro Hybrid Engine API is online and connected to D1!",
+        database_tables: results
+      }, { headers: corsHeaders });
+    } catch (error: any) {
+      return Response.json({
+        status: "error",
+        message: error.message
+      }, { status: 500, headers: corsHeaders });
     }
   },
 };
